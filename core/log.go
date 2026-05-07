@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"os"
+	"strings"
 	"time"
 
 	mpanelLog "github.com/zamibd/MPanel/logger"
@@ -167,6 +168,12 @@ func (l *observableLogger) Log(ctx context.Context, level log.Level, args []any)
 		return
 	}
 	msg := F.ToString(args...)
+	// Suppress "missing default interface" — this is a known harmless condition
+	// in Docker/container environments where no default route exists in the
+	// routing table. sing-box still starts and operates successfully.
+	if strings.Contains(msg, "missing default interface") {
+		return
+	}
 	switch level {
 	case log.LevelInfo:
 		mpanelLog.Info(l.tag, msg)

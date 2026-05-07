@@ -10,8 +10,16 @@ import (
 	"gorm.io/gorm"
 )
 
+func tableExists(db *gorm.DB, tableName string) bool {
+	var count int64
+	db.Raw("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name = ?", tableName).Scan(&count)
+	return count > 0
+}
+
 func migrateClientSchema(db *gorm.DB) error {
-	// Use information_schema.columns instead of SQLite's PRAGMA table_info
+	if !tableExists(db, "clients") {
+		return nil
+	}
 	type colInfo struct {
 		ColumnName string
 		DataType   string
@@ -29,8 +37,6 @@ func migrateClientSchema(db *gorm.DB) error {
 	}
 
 	for _, col := range cols {
-		// In Postgres, old text columns would have data_type = 'text';
-		// the new schema uses 'jsonb'. Migrate any residual text values.
 		if col.DataType == "text" {
 			fmt.Printf("Column %s has type TEXT\n", col.ColumnName)
 			oldData := make([]struct {
@@ -64,11 +70,16 @@ func migrateClientSchema(db *gorm.DB) error {
 }
 
 func deleteOldWebSecret(db *gorm.DB) error {
+	if !tableExists(db, "settings") {
+		return nil
+	}
 	return db.Exec("DELETE FROM settings WHERE key = ?", "webSecret").Error
 }
 
 func changesObj(db *gorm.DB) error {
-	// PostgreSQL: concatenate and cast to bytea instead of SQLite BLOB
+	if !tableExists(db, "changes") {
+		return nil
+	}
 	return db.Exec(`
 		UPDATE changes
 		SET obj = ('"' || obj::text || '"')::bytea

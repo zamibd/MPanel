@@ -13,15 +13,14 @@ import (
 
 func migrate_dns(db *gorm.DB) error {
 	var configStr string
-	err := db.Model(model.Setting{}).Select("value").Where("key = ?", "config").First(&configStr).Error
-	if err != nil {
-		return err
-	}
+	// Use Find (not First) so GORM does not log ErrRecordNotFound when the
+	// settings table is empty on a fresh database.
+	db.Model(model.Setting{}).Select("value").Where("key = ?", "config").Limit(1).Find(&configStr)
 	if configStr == "" {
-		return nil
+		return nil // fresh database or no config row, nothing to migrate
 	}
 	var config map[string]interface{}
-	err = json.Unmarshal([]byte(configStr), &config)
+	err := json.Unmarshal([]byte(configStr), &config)
 	if err != nil {
 		return err
 	}

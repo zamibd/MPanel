@@ -5,6 +5,7 @@ backup/
 bin/
 db/
 sui
+mpanel
 web/html
 main
 tmp

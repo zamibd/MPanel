@@ -26,6 +26,7 @@ var defaultConfig = `{
     "rules": []
   },
   "route": {
+    "default_interface": "eth0",
     "rules": [
 		  {
         "action": "sniff"

@@ -66,8 +66,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { platform: amd64, arch: amd64, bootlin: x86-64, naive: true }
-          - { platform: arm64, arch: arm64, bootlin: aarch64, naive: true }
+          - { platform: amd64, arch: amd64, bootlin: x86-64, naive: true, goarm: '' }
+          - { platform: arm64, arch: arm64, bootlin: aarch64, naive: true, goarm: '' }
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -156,6 +156,7 @@ jobs:
           cp mpanel_bin mpanel/mpanel
           cp mpanel.service mpanel/
           cp mpanel.sh mpanel/
+          cp .env.example mpanel/.env
           
       - name: Package
         run: tar -zcvf mpanel-linux-${{ matrix.platform }}.tar.gz mpanel

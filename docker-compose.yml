@@ -8,18 +8,19 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-mpanel}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
       POSTGRES_DB: ${POSTGRES_DB:-mpanel}
-      TZ: Asia/Dhaka
-      PGTZ: Asia/Dhaka
+      TZ: ${TZ:-Asia/Dhaka}
+      PGTZ: ${TZ:-Asia/Dhaka}
     command: >
-      postgres
-      -c timezone=Asia/Dhaka
-      -c log_timezone=Asia/Dhaka
+      postgres -c timezone=${TZ:-Asia/Dhaka} -c log_timezone=${TZ:-Asia/Dhaka}
+    ports:
+      - "${POSTGRES_BIND_IP:-127.0.0.1}:${POSTGRES_PORT:-5432}:5432"
+    #  - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql
     networks:
       - mpanel
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mpanel} -d ${POSTGRES_DB:-mpanel}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mpanel} -d ${POSTGRES_DB:-mpanel}" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -35,29 +36,26 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: mpanel
-    hostname: "host"
     depends_on:
       postgres:
         condition: service_healthy
+    network_mode: host
     environment:
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: 5432
+      POSTGRES_HOST: ${POSTGRES_HOST:-127.0.0.1}
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
       POSTGRES_USER: ${POSTGRES_USER:-mpanel}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
       POSTGRES_DB: ${POSTGRES_DB:-mpanel}
       POSTGRES_SSLMODE: ${POSTGRES_SSLMODE:-disable}
-      TZ: Asia/Dhaka
+      TZ: ${TZ:-Asia/Dhaka}
+      MPANEL_LOG_LEVEL: ${MPANEL_LOG_LEVEL:-info}
+      MPANEL_DEBUG: ${MPANEL_DEBUG:-false}
     volumes:
       - "./cert:/app/cert"
     tty: true
     restart: unless-stopped
-    ports:
-      - "2095:2095"
-      - "2096:2096"
-    networks:
-      - mpanel
     healthcheck:
-      test: ["CMD-SHELL", "nc -z localhost 2095 || exit 1"]
+      test: [ "CMD-SHELL", "nc -z localhost 2095 || exit 1" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -82,8 +80,8 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-mpanel}
       PGPASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
       BACKUP_RETAIN: ${BACKUP_RETAIN:-7}
-      TZ: Asia/Dhaka
-      PGTZ: Asia/Dhaka
+      TZ: ${TZ:-Asia/Dhaka}
+      PGTZ: ${TZ:-Asia/Dhaka}
     volumes:
       - ./backups:/backups
     networks:
@@ -96,9 +94,9 @@ services:
           if [ \"$$NOW\" = \"02:00\" ]; then
             STAMP=$$(date '+%Y%m%d_%H%M%S');
             FILE=/backups/mpanel_$${POSTGRES_DB}_$${STAMP}.sql.gz;
-            echo \"[INFO] $$(date) — Starting backup → $$FILE\";
+            echo \"[INFO] $$(date) Starting backup\";
             pg_dump -h postgres -U $$POSTGRES_USER -d $$POSTGRES_DB | gzip > $$FILE;
-            echo \"[INFO] $$(date) — Backup done. Size: $$(du -sh $$FILE | cut -f1)\";
+            echo \"[INFO] $$(date) Backup done\";
             find /backups -maxdepth 1 -name 'mpanel_*.sql.gz' -mtime +$${BACKUP_RETAIN} -delete;
             echo \"[INFO] Rotated backups older than $${BACKUP_RETAIN} days\";
             sleep 61;
