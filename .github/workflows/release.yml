@@ -129,17 +129,17 @@ jobs:
           echo "GOARCH=${{ matrix.arch }}" >> $GITHUB_ENV
           if [ -n "${{ matrix.goarm }}" ]; then echo "GOARM=${{ matrix.goarm }}" >> $GITHUB_ENV; fi
 
-      - name: Build mpanel
-        run: |
+           - name: Build mpanel
+             run: |
           set -e
           BUILD_TAGS="with_quic,with_grpc,with_utls,with_acme,with_gvisor,badlinkname,tfogo_checklinkname0,with_tailscale"
           [ "${{ matrix.naive }}" = "true" ] && BUILD_TAGS="${BUILD_TAGS},with_naive_outbound,with_musl"
-          go build -ldflags="-w -s -checklinkname=0 -linkmode external -extldflags '-static'" -tags "$BUILD_TAGS" -o mpanel main.go
-          file mpanel
-          ldd mpanel 2>/dev/null || echo "Static binary confirmed"
+          go build -ldflags="-w -s -checklinkname=0 -linkmode external -extldflags '-static'" -tags "$BUILD_TAGS" -o mpanel_bin main.go
+          file mpanel_bin
+          ldd mpanel_bin 2>/dev/null || echo "Static binary confirmed"
 
           mkdir mpanel
-          cp mpanel mpanel/
+          cp mpanel_bin mpanel/mpanel
           cp mpanel.service mpanel/
           cp mpanel.sh mpanel/
 
