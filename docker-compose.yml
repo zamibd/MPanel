@@ -1,0 +1,121 @@
+---
+services:
+  postgres:
+    image: postgres:18
+    container_name: mpanel-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-mpanel}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:-mpanel}
+      TZ: Asia/Dhaka
+      PGTZ: Asia/Dhaka
+    command: >
+      postgres
+      -c timezone=Asia/Dhaka
+      -c log_timezone=Asia/Dhaka
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    networks:
+      - mpanel
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mpanel} -d ${POSTGRES_DB:-mpanel}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  mpanel:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mpanel
+    hostname: "host"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-mpanel}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:-mpanel}
+      POSTGRES_SSLMODE: ${POSTGRES_SSLMODE:-disable}
+      TZ: Asia/Dhaka
+    volumes:
+      - "./cert:/app/cert"
+    tty: true
+    restart: unless-stopped
+    ports:
+      - "2095:2095"
+      - "2096:2096"
+    networks:
+      - mpanel
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 2095 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    entrypoint: "./entrypoint.sh"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "7"
+
+  backup:
+    image: postgres:18
+    container_name: mpanel-backup
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-mpanel}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:-mpanel}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      BACKUP_RETAIN: ${BACKUP_RETAIN:-7}
+      TZ: Asia/Dhaka
+      PGTZ: Asia/Dhaka
+    volumes:
+      - ./backups:/backups
+    networks:
+      - mpanel
+    entrypoint: >
+      /bin/bash -c "
+        echo 'Backup service started. Schedule: daily at 02:00 Asia/Dhaka';
+        while true; do
+          NOW=$$(date '+%H:%M');
+          if [ \"$$NOW\" = \"02:00\" ]; then
+            STAMP=$$(date '+%Y%m%d_%H%M%S');
+            FILE=/backups/mpanel_$${POSTGRES_DB}_$${STAMP}.sql.gz;
+            echo \"[INFO] $$(date) — Starting backup → $$FILE\";
+            pg_dump -h postgres -U $$POSTGRES_USER -d $$POSTGRES_DB | gzip > $$FILE;
+            echo \"[INFO] $$(date) — Backup done. Size: $$(du -sh $$FILE | cut -f1)\";
+            find /backups -maxdepth 1 -name 'mpanel_*.sql.gz' -mtime +$${BACKUP_RETAIN} -delete;
+            echo \"[INFO] Rotated backups older than $${BACKUP_RETAIN} days\";
+            sleep 61;
+          fi;
+          sleep 30;
+        done
+      "
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+volumes:
+  postgres_data:
+    name: mpanel_postgres_data
+
+networks:
+  mpanel:
+    driver: bridge
