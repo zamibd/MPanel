@@ -110,6 +110,9 @@ func (s *Server) initRouter() (*gin.Engine, error) {
 	group_api := engine.Group(base_url + "api")
 	api.NewAPIHandler(group_api, apiv2)
 
+	// AmneziaWG standalone handler (mounted on both v1 and v2)
+	api.NewAmneziaHandler(group_api, group_apiv2)
+
 	// Serve index.html as the entry point
 	// Handle all other routes by serving index.html
 	engine.NoRoute(func(c *gin.Context) {

@@ -21,8 +21,10 @@ func (c *CronJob) Start(loc *time.Location, trafficAge int) error {
 	go func() {
 		// Start stats job
 		c.cron.AddJob("@every 10s", NewStatsJob(trafficAge > 0))
-		// Start expiry job
+		// Start expiry job (Sing-box clients)
 		c.cron.AddJob("@every 1m", NewDepleteJob())
+		// Start AmneziaWG traffic sync + peer expiry job
+		c.cron.AddJob("@every 1m", NewAmneziaJob())
 		// Start deleting old stats
 		if trafficAge > 0 {
 			c.cron.AddJob("@daily", NewDelStatsJob(trafficAge))

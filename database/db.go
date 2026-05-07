@@ -109,6 +109,7 @@ func InitDB(dsn string) error {
 		&model.Stats{},
 		&model.Client{},
 		&model.Changes{},
+		&model.AmneziaPeer{},
 	)
 	if err != nil {
 		return err
