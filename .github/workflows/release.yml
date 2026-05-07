@@ -7,6 +7,7 @@ on:
   push:
     branches:
       - main
+      - master
     tags:
       - "*"
     paths:
@@ -129,19 +130,28 @@ jobs:
           echo "GOARCH=${{ matrix.arch }}" >> $GITHUB_ENV
           if [ -n "${{ matrix.goarm }}" ]; then echo "GOARM=${{ matrix.goarm }}" >> $GITHUB_ENV; fi
 
-           - name: Build mpanel
-             run: |
+      - name: Build mpanel
+        run: |
           set -e
           BUILD_TAGS="with_quic,with_grpc,with_utls,with_acme,with_gvisor,badlinkname,tfogo_checklinkname0,with_tailscale"
           [ "${{ matrix.naive }}" = "true" ] && BUILD_TAGS="${BUILD_TAGS},with_naive_outbound,with_musl"
-          go build -ldflags="-w -s -checklinkname=0 -linkmode external -extldflags '-static'" -tags "$BUILD_TAGS" -o mpanel_bin main.go
-          file mpanel_bin
+
+          export CGO_LDFLAGS="${CGO_LDFLAGS} -static"
+
+          go build \
+            -ldflags "-w -s -checklinkname=0 -linkmode external" \
+            -tags "${BUILD_TAGS}" \
+            -o mpanel_bin \
+            main.go
+
+          file mpanel_bin || true
           ldd mpanel_bin 2>/dev/null || echo "Static binary confirmed"
 
-          mkdir mpanel
+          mkdir -p mpanel
           cp mpanel_bin mpanel/mpanel
           cp mpanel.service mpanel/
           cp mpanel.sh mpanel/
+
 
       - name: Package
         run: tar -zcvf mpanel-linux-${{ matrix.platform }}.tar.gz mpanel
