@@ -147,12 +147,12 @@ jobs:
           file mpanel_bin || true
           ldd mpanel_bin 2>/dev/null || echo "Static binary confirmed"
 
-          mkdir -p mpanel
+          rm -rf mpanel
+          mkdir mpanel
           cp mpanel_bin mpanel/mpanel
           cp mpanel.service mpanel/
           cp mpanel.sh mpanel/
-
-
+          
       - name: Package
         run: tar -zcvf mpanel-linux-${{ matrix.platform }}.tar.gz mpanel
 
