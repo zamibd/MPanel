@@ -25,18 +25,22 @@ env:
   CRONET_GO_REPO: https://github.com/sagernet/cronet-go.git
   BOOTLIN_BASE_URL: https://toolchains.bootlin.com/downloads/releases/toolchains
 
+# Grant the required permissions for uploading release assets
+permissions:
+  contents: write
+
 jobs:
   build-frontend:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository (frontend only)
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 1
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -50,7 +54,7 @@ jobs:
           cd ..
 
       - name: Upload frontend dist
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: frontend-dist
           path: frontend/dist/
@@ -67,16 +71,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v4
 
       - name: Download frontend dist
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@v4
         with:
           name: frontend-dist
           path: web/html
 
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v5
         with:
           cache: false
           go-version-file: go.mod
@@ -102,7 +106,7 @@ jobs:
       - name: Cache Chromium toolchain
         if: matrix.naive
         id: cache-chromium-toolchain
-        uses: actions/cache@v5
+        uses: actions/cache@v4
         with:
           path: |
             ~/cronet-go/naiveproxy/src/third_party/llvm-build/
@@ -157,7 +161,7 @@ jobs:
         run: tar -zcvf mpanel-linux-${{ matrix.platform }}.tar.gz mpanel
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: mpanel-linux-${{ matrix.platform }}
           path: ./mpanel-linux-${{ matrix.platform }}.tar.gz
