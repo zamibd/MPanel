@@ -304,10 +304,10 @@ func (s *InboundService) addUsers(db *gorm.DB, inboundJson []byte, inboundId uin
 }
 
 func (s *InboundService) initUsers(db *gorm.DB, inboundJson []byte, clientIds string, inboundType string) ([]byte, error) {
-	ClientIds := strings.Split(clientIds, ",")
-	if len(ClientIds) == 0 {
+	if clientIds == "" {
 		return inboundJson, nil
 	}
+	ClientIds := strings.Split(clientIds, ",")
 
 	if !s.hasUser(inboundType) {
 		return inboundJson, nil

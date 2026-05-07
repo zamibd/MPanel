@@ -170,6 +170,12 @@ install_mpanel() {
     cp -f mpanel/*.service /etc/systemd/system/
     rm -rf mpanel
 
+    if [ -f "/usr/local/mpanel/.env" ]; then
+        set -a
+        source /usr/local/mpanel/.env
+        set +a
+    fi
+
     config_after_install
     prepare_services
 

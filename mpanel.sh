@@ -32,6 +32,11 @@ fi
 
 echo "The OS release is: $release"
 
+if [ -f "/usr/local/mpanel/.env" ]; then
+    set -a
+    source /usr/local/mpanel/.env
+    set +a
+fi
 confirm() {
     if [[ $# > 1 ]]; then
         echo && read -p "$1 [Default$2]: " temp

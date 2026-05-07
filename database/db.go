@@ -80,6 +80,14 @@ func InitDB(dsn string) error {
 		return err
 	}
 
+	// Drop problematic constraints created by earlier versions
+	if db.Migrator().HasConstraint(&model.Inbound{}, "fk_inbounds_tls") {
+		db.Migrator().DropConstraint(&model.Inbound{}, "fk_inbounds_tls")
+	}
+	if db.Migrator().HasConstraint(&model.Service{}, "fk_services_tls") {
+		db.Migrator().DropConstraint(&model.Service{}, "fk_services_tls")
+	}
+
 	// Default Outbounds
 	if !db.Migrator().HasTable(&model.Outbound{}) {
 		db.Migrator().CreateTable(&model.Outbound{})

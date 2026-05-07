@@ -3,6 +3,7 @@ package service
 import (
 	"encoding/json"
 	"os"
+	"strings"
 
 	"github.com/zamibd/MPanel/database"
 	"github.com/zamibd/MPanel/database/model"
@@ -72,13 +73,49 @@ func (s *EndpointService) Save(tx *gorm.DB, act string, data json.RawMessage) er
 			return err
 		}
 
-		if endpoint.Type == "warp" {
-			if act == "new" {
+		if endpoint.Type == "wireguard" || endpoint.Type == "warp" {
+			var opts map[string]interface{}
+			if len(endpoint.Options) > 0 {
+				json.Unmarshal(endpoint.Options, &opts)
+			} else {
+				opts = make(map[string]interface{})
+			}
+
+			// Auto-generate endpoint private key if missing
+			privKey, _ := opts["private_key"].(string)
+			if privKey == "" || privKey == "auto" {
+				var ss ServerService
+				keys := ss.GenKeypair("wireguard", "")
+				if len(keys) == 2 {
+					opts["private_key"] = strings.TrimPrefix(keys[0], "PrivateKey: ")
+					opts["public_key"] = strings.TrimPrefix(keys[1], "PublicKey: ") // Saved for reference
+				}
+			}
+
+			// Auto-generate keys for peers if public_key is 'auto' or missing
+			if peersList, ok := opts["peers"].([]interface{}); ok {
+				for _, p := range peersList {
+					if peer, ok := p.(map[string]interface{}); ok {
+						pubKey, _ := peer["public_key"].(string)
+						if pubKey == "" || pubKey == "auto" {
+							var ss ServerService
+							keys := ss.GenKeypair("wireguard", "")
+							if len(keys) == 2 {
+								peer["public_key"] = strings.TrimPrefix(keys[1], "PublicKey: ")
+								peer["private_key"] = strings.TrimPrefix(keys[0], "PrivateKey: ") // Saved for user reference
+							}
+						}
+					}
+				}
+			}
+			endpoint.Options, _ = json.Marshal(opts)
+
+			if act == "new" && endpoint.Type == "warp" {
 				err = s.WarpService.RegisterWarp(&endpoint)
 				if err != nil {
 					return err
 				}
-			} else {
+			} else if act == "edit" && endpoint.Type == "warp" {
 				var old_license string
 				err = tx.Model(model.Endpoint{}).Select("ext->>'license_key'").Where("id = ?", endpoint.Id).Find(&old_license).Error
 				if err != nil {

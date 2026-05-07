@@ -11,7 +11,7 @@ type Service struct {
 
 	// Foreign key to tls table
 	TlsId uint `json:"tls_id" form:"tls_id"`
-	Tls   *Tls `json:"tls" form:"tls" gorm:"foreignKey:TlsId;references:Id"`
+	Tls   *Tls `json:"tls" form:"tls" gorm:"foreignKey:TlsId;references:Id;constraint:-;"`
 
 	Options json.RawMessage `json:"-" form:"-"`
 }

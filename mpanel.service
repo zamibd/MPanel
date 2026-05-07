@@ -6,6 +6,7 @@ Wants=network.target
 [Service]
 Type=simple
 WorkingDirectory=/usr/local/mpanel/
+EnvironmentFile=-/usr/local/mpanel/.env
 ExecStart=/usr/local/mpanel/mpanel
 Restart=on-failure
 RestartSec=10s

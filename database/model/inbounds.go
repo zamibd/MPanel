@@ -11,7 +11,7 @@ type Inbound struct {
 
 	// Foreign key to tls table
 	TlsId uint `json:"tls_id" form:"tls_id"`
-	Tls   *Tls `json:"tls" form:"tls" gorm:"foreignKey:TlsId;references:Id"`
+	Tls   *Tls `json:"tls" form:"tls" gorm:"foreignKey:TlsId;references:Id;constraint:-;"`
 
 	Addrs   json.RawMessage `json:"addrs" form:"addrs"`
 	OutJson json.RawMessage `json:"out_json" form:"out_json"`
