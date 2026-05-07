@@ -63,9 +63,6 @@ jobs:
         include:
           - { platform: amd64, arch: amd64, bootlin: x86-64, naive: true }
           - { platform: arm64, arch: arm64, bootlin: aarch64, naive: true }
-          - { platform: armv7, arch: arm, goarm: "7", bootlin: armv7-eabihf, naive: true }
-          - { platform: armv6, arch: arm, goarm: "6", bootlin: armv6-eabihf, naive: true }
-          - { platform: armv5, arch: arm, goarm: "5", bootlin: armv5-eabi, naive: false }
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -83,7 +80,6 @@ jobs:
           cache: false
           go-version-file: go.mod
 
-      # Naive platforms: use cronet toolchain only (no Bootlin).
       - name: Clone cronet-go (cronet toolchain for naive)
         if: matrix.naive
         run: |
@@ -132,35 +128,6 @@ jobs:
           echo "GOOS=linux" >> $GITHUB_ENV
           echo "GOARCH=${{ matrix.arch }}" >> $GITHUB_ENV
           if [ -n "${{ matrix.goarm }}" ]; then echo "GOARM=${{ matrix.goarm }}" >> $GITHUB_ENV; fi
-
-      # Non-naive platforms only: Bootlin musl (armv5, s390x).
-      - name: Set up Bootlin musl (armv5, s390x)
-        if: ${{ matrix.naive != true }}
-        run: |
-          set -e
-          BOOTLIN_ARCH="${{ matrix.bootlin }}"
-          echo "Resolving Bootlin musl toolchain for arch=$BOOTLIN_ARCH (platform=${{ matrix.platform }})"
-          TARBALL_BASE="${{ env.BOOTLIN_BASE_URL }}/$BOOTLIN_ARCH/tarballs/"
-          TARBALL_URL=$(curl -fsSL "$TARBALL_BASE" | grep -oE "${BOOTLIN_ARCH}--musl--stable-[^\"]+\\.tar\\.xz" | sort -r | head -n1)
-          [ -z "$TARBALL_URL" ] && { echo "Failed to locate Bootlin musl toolchain for arch=$BOOTLIN_ARCH" >&2; exit 1; }
-          echo "Downloading: $TARBALL_URL"
-          cd /tmp
-          curl -fL -sS -o "$(basename "$TARBALL_URL")" "$TARBALL_BASE/$TARBALL_URL"
-          tar -xf "$(basename "$TARBALL_URL")"
-          TOOLCHAIN_DIR=$(find . -maxdepth 1 -type d -name "${BOOTLIN_ARCH}--musl--stable-*" | head -n1)
-          TOOLCHAIN_DIR="$(realpath "$TOOLCHAIN_DIR")"
-          BIN_DIR="$TOOLCHAIN_DIR/bin"
-          echo "PATH=$BIN_DIR:$PATH" >> $GITHUB_ENV
-          CC=$(find "$BIN_DIR" -maxdepth 1 \( -name '*-gcc.br_real' -o -name '*-gcc' \) -type f -executable 2>/dev/null | grep -v g++ | head -n1)
-          [ -z "$CC" ] && { echo "No gcc found in $BIN_DIR" >&2; exit 1; }
-          echo "CC=$(realpath "$CC")" >> $GITHUB_ENV
-          SYSROOT=""
-          F=$(find "$TOOLCHAIN_DIR" -name "libc-header-start.h" 2>/dev/null | head -1)
-          if [ -n "$F" ]; then SYSROOT=$(dirname "$(dirname "$(dirname "$(dirname "$F")")")"); fi
-          if [ -n "$SYSROOT" ] && [ -d "$SYSROOT" ]; then
-            echo "CGO_CFLAGS=--sysroot=$SYSROOT" >> $GITHUB_ENV
-            echo "CGO_LDFLAGS=--sysroot=$SYSROOT -static" >> $GITHUB_ENV
-          fi
 
       - name: Build mpanel
         run: |
