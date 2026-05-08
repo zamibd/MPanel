@@ -299,6 +299,7 @@ package: build ## Package the binary into a tar.gz archive
 	cp $(BINARY) dist/$(APP_NAME)/
 	cp mpanel.service dist/$(APP_NAME)/
 	cp mpanel.sh dist/$(APP_NAME)/
+	cp .env.example dist/$(APP_NAME)/
 	tar -zcvf $(APP_NAME)-$(VERSION).tar.gz -C dist $(APP_NAME)
 	rm -rf dist
 	@printf "$(GREEN)✔ Package: $(APP_NAME)-$(VERSION).tar.gz$(RESET)\n"

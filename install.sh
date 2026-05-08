@@ -170,6 +170,10 @@ install_mpanel() {
     cp -f mpanel/*.service /etc/systemd/system/
     rm -rf mpanel
 
+    if [ ! -f "/usr/local/mpanel/.env" ] && [ -f "/usr/local/mpanel/.env.example" ]; then
+        cp /usr/local/mpanel/.env.example /usr/local/mpanel/.env
+    fi
+
     if [ -f "/usr/local/mpanel/.env" ]; then
         set -a
         source /usr/local/mpanel/.env

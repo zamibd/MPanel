@@ -156,7 +156,7 @@ jobs:
           cp mpanel_bin mpanel/mpanel
           cp mpanel.service mpanel/
           cp mpanel.sh mpanel/
-          cp .env.example mpanel/.env
+          cp .env.example mpanel/.env.example
           
       - name: Package
         run: tar -zcvf mpanel-linux-${{ matrix.platform }}.tar.gz mpanel
