@@ -188,7 +188,7 @@ watch(() => props.modelValue, (v) => {
 
 const genKeypair = async () => {
   loading.value = true
-  const msg = await HttpUtils.get('apiv2/amnezia/keypair')
+  const msg = await HttpUtils.get('api/amnezia/keypair')
   loading.value = false
   if (msg.success && msg.obj) {
     peer.value.privateKey = msg.obj.privateKey
@@ -204,9 +204,9 @@ const save = async () => {
   loading.value = true
   let msg
   if (isEdit.value) {
-    msg = await HttpUtils.post(`apiv2/amnezia/peers/${peer.value.id}`, peer.value)
+    msg = await HttpUtils.post(`api/amnezia/peers/${peer.value.id}`, peer.value)
   } else {
-    msg = await HttpUtils.post('apiv2/amnezia/peers', peer.value)
+    msg = await HttpUtils.post('api/amnezia/peers', peer.value)
   }
   loading.value = false
   if (msg.success) {

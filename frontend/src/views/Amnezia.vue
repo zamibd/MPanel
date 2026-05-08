@@ -382,13 +382,13 @@ const isExpired = (ts: number) => ts > 0 && ts < Date.now() / 1000
 
 // ── Data loading ──────────────────────────────────────────────────────────────
 const loadStatus = async () => {
-  const msg = await HttpUtils.get('apiv2/amnezia/status')
+  const msg = await HttpUtils.get('api/amnezia/status')
   if (msg.success && msg.obj) status.value = msg.obj
 }
 
 const loadPeers = async () => {
   tableLoading.value = true
-  const msg = await HttpUtils.get('apiv2/amnezia/peers')
+  const msg = await HttpUtils.get('api/amnezia/peers')
   tableLoading.value = false
   if (msg.success && msg.obj) peers.value = msg.obj
 }
@@ -396,21 +396,21 @@ const loadPeers = async () => {
 // ── Interface controls ────────────────────────────────────────────────────────
 const startInterface = async () => {
   ifaceLoading.value = true
-  const msg = await HttpUtils.post('apiv2/amnezia/start', null)
+  const msg = await HttpUtils.post('api/amnezia/start', null)
   ifaceLoading.value = false
   if (msg.success) await loadStatus()
 }
 
 const stopInterface = async () => {
   ifaceLoading.value = true
-  const msg = await HttpUtils.post('apiv2/amnezia/stop', null)
+  const msg = await HttpUtils.post('api/amnezia/stop', null)
   ifaceLoading.value = false
   if (msg.success) await loadStatus()
 }
 
 // ── Config ────────────────────────────────────────────────────────────────────
 const openConfig = async () => {
-  const msg = await HttpUtils.get('apiv2/amnezia/config')
+  const msg = await HttpUtils.get('api/amnezia/config')
   if (msg.success && msg.obj) {
     cfg.value = { ...cfg.value, ...msg.obj, privateKey: 'auto' }
   }
@@ -419,7 +419,7 @@ const openConfig = async () => {
 
 const genServerKey = async () => {
   cfgLoading.value = true
-  const msg = await HttpUtils.get('apiv2/amnezia/keypair')
+  const msg = await HttpUtils.get('api/amnezia/keypair')
   cfgLoading.value = false
   if (msg.success && msg.obj) {
     cfg.value.privateKey = msg.obj.privateKey
@@ -429,7 +429,7 @@ const genServerKey = async () => {
 
 const saveConfig = async () => {
   cfgLoading.value = true
-  const msg = await HttpUtils.post('apiv2/amnezia/config', cfg.value)
+  const msg = await HttpUtils.post('api/amnezia/config', cfg.value)
   cfgLoading.value = false
   if (msg.success) showConfig.value = false
 }
@@ -446,7 +446,7 @@ const openEditPeer = (p: AmneziaPeer) => {
 }
 
 const togglePeer = async (p: AmneziaPeer) => {
-  const msg = await HttpUtils.post(`apiv2/amnezia/peers/${p.id}/toggle`, null)
+  const msg = await HttpUtils.post(`api/amnezia/peers/${p.id}/toggle`, null)
   if (msg.success) await loadPeers()
 }
 
@@ -461,7 +461,7 @@ const confirmDelete = async () => {
   // HttpUtils doesn't have delete, use fetch directly
   try {
     const base = (window as any).BASE_URL || '/'
-    const resp = await fetch(`${base}apiv2/amnezia/peers/${peerToDelete.value.id}`, { method: 'DELETE' })
+    const resp = await fetch(`${base}api/amnezia/peers/${peerToDelete.value.id}`, { method: 'DELETE' })
     const data = await resp.json()
     if (data.success) {
       push.success({ message: 'Peer deleted' })
@@ -483,7 +483,7 @@ const showQR = async (p: AmneziaPeer) => {
   qrDialog.value = true
   // Load config text (also used for download)
   const serverIP = window.location.hostname
-  const msg = await HttpUtils.get(`apiv2/amnezia/peers/${p.id}/config`, { server: serverIP })
+  const msg = await HttpUtils.get(`api/amnezia/peers/${p.id}/config`, { server: serverIP })
   if (msg.success) {
     // msg.obj will be the raw .conf text (returned as plain text, so check)
     try {
@@ -496,7 +496,7 @@ const showQR = async (p: AmneziaPeer) => {
 const downloadConf = async () => {
   if (!qrPeer.value) return
   const serverIP = window.location.hostname
-  const url = `${(window as any).BASE_URL || '/'}apiv2/amnezia/peers/${qrPeer.value.id}/config?server=${serverIP}`
+  const url = `${(window as any).BASE_URL || '/'}api/amnezia/peers/${qrPeer.value.id}/config?server=${serverIP}`
   const a = document.createElement('a')
   a.href = url
   a.download = `${qrPeer.value.name}.conf`
