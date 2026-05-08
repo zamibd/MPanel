@@ -45,6 +45,11 @@ const routes = [
         component: () => import('@/views/Endpoints.vue'),
       },
       {
+        path: '/amnezia',
+        name: 'pages.amnezia',
+        component: () => import('@/views/Amnezia.vue'),
+      },
+      {
         path: '/rules',
         name: 'pages.rules',
         component: () => import('@/views/Rules.vue'),

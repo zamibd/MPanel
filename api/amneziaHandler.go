@@ -1,7 +1,6 @@
 package api
 
 import (
-	"encoding/json"
 	"strconv"
 
 	"github.com/zamibd/MPanel/database/model"
@@ -253,11 +252,3 @@ func parseID(c *gin.Context) (uint, error) {
 	return uint(n), nil
 }
 
-// jsonUnmarshal is a thin wrapper used by amnezia_service internals via this package.
-func jsonUnmarshal(data []byte, v interface{}) error {
-	return json.Unmarshal(data, v)
-}
-
-func jsonMarshal(v interface{}) ([]byte, error) {
-	return json.Marshal(v)
-}

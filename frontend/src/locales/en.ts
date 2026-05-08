@@ -43,6 +43,7 @@ export default {
     outbounds: "Outbounds",
     services: "Services",
     endpoints: "Endpoints",
+    amnezia: "AmneziaWG",
     clients: "Clients",
     rules: "Rules",
     tls: "TLS Settings",
