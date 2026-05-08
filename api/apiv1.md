@@ -94,6 +94,26 @@ The v1 API inherits most of its functionality from the core `ApiService` (simila
 | `GET /api/singbox-config` | Download the generated Sing-Box `config.json` |
 | `GET /api/checkOutbound` | Test outbound connectivity |
 
+### AmneziaWG Endpoints
+
+The AmneziaWG integration provides direct management of a standalone WireGuard/AmneziaWG interface.
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/amnezia/config` | GET | Get the server configuration |
+| `/api/amnezia/config` | POST | Save the server configuration (set `privateKey: "auto"` to generate) |
+| `/api/amnezia/start` | POST | Start the AmneziaWG interface |
+| `/api/amnezia/stop` | POST | Stop the AmneziaWG interface |
+| `/api/amnezia/status` | GET | Get interface running status |
+| `/api/amnezia/peers` | GET | List all peers |
+| `/api/amnezia/peers/:id` | GET | Get a specific peer by ID |
+| `/api/amnezia/peers` | POST | Add a new peer (`AmneziaPeer` JSON body) |
+| `/api/amnezia/peers/:id` | PUT | Edit an existing peer (`AmneziaPeer` JSON body) |
+| `/api/amnezia/peers/:id` | DELETE | Delete a specific peer |
+| `/api/amnezia/peers/:id/toggle` | POST | Enable/Disable a peer |
+| `/api/amnezia/peers/:id/config` | GET | Download peer `.conf` file (query: `server` IP/domain) |
+| `/api/amnezia/keypair` | GET | Generate a new WireGuard keypair |
+
 > **Note:** For specific query parameters and JSON payload structures for data endpoints (like `/status`, `/save`, `/stats`), please refer to the `/apiv2` documentation, as the parameters are identical between `/api` and `/apiv2`.
 
 ### Real-World Examples (Using Cookies)

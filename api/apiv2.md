@@ -176,6 +176,26 @@ curl -X POST "http://localhost:2095/app/apiv2/restartSb" \
 | `GET /apiv2/getdb` | Download the database file | `exclude` (string): Fields to exclude |
 | `GET /apiv2/checkOutbound` | Test outbound connectivity | None |
 
+### AmneziaWG Endpoints
+
+The AmneziaWG integration provides direct management of a standalone WireGuard/AmneziaWG interface.
+
+| Endpoint | Method | Description | Request Body / Query Params |
+|----------|--------|-------------|-----------------------------|
+| `/apiv2/amnezia/config` | GET | Get the server configuration | None |
+| `/apiv2/amnezia/config` | POST | Save the server configuration | `AmneziaConfig` JSON object (set `privateKey: "auto"` to generate) |
+| `/apiv2/amnezia/start` | POST | Start the AmneziaWG interface | None |
+| `/apiv2/amnezia/stop` | POST | Stop the AmneziaWG interface | None |
+| `/apiv2/amnezia/status` | GET | Get interface running status | None |
+| `/apiv2/amnezia/peers` | GET | List all peers | None |
+| `/apiv2/amnezia/peers/:id` | GET | Get a specific peer by ID | None |
+| `/apiv2/amnezia/peers` | POST | Add a new peer | `AmneziaPeer` JSON object |
+| `/apiv2/amnezia/peers/:id` | PUT | Edit an existing peer | `AmneziaPeer` JSON object |
+| `/apiv2/amnezia/peers/:id` | DELETE | Delete a specific peer | None |
+| `/apiv2/amnezia/peers/:id/toggle` | POST | Enable/Disable a peer | None |
+| `/apiv2/amnezia/peers/:id/config` | GET | Download peer `.conf` file | `server` (string, optional): Server IP/Hostname |
+| `/apiv2/amnezia/keypair` | GET | Generate a new keypair | None |
+
 ### Real-World Examples (GET)
 
 **1. Retrieve a specific Inbound by ID (`/apiv2/inbounds`)**
